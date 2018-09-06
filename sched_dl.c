@@ -33,6 +33,8 @@
 
 #define gettid() syscall(__NR_gettid)
 
+#define SCHED_FIFO 1
+#define SCHED_RR 2
 #define SCHED_DEADLINE	6
 
 /* XXX use the proper syscall numbers */
@@ -104,8 +106,51 @@ int set_current_tid_to_deadline (__u64 runtime, __u64 deadline, __u64 period, un
     return 0;
 }
 
+int set_current_tid_to_fifo (__u32 sched_priority, unsigned int flags)
+{
+    struct sched_attr attr;
+    int ret;
+
+    ret = sched_getattr (0, &attr, sizeof(struct sched_attr), 0);
+    if (ret < 0) {
+        return ret;
+    }
+
+    attr.sched_policy = SCHED_FIFO;
+    attr.sched_priority = sched_priority;
+    attr.sched_flags = flags;
+
+    ret = sched_setattr (0, &attr, 0);
+    if (ret < 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
+int set_current_tid_to_rr (__u32 sched_priority, unsigned int flags)
+{
+    struct sched_attr attr;
+    int ret;
+
+    ret = sched_getattr (0, &attr, sizeof(struct sched_attr), 0);
+    if (ret < 0) {
+        return ret;
+    }
+
+    attr.sched_policy = SCHED_RR;
+    attr.sched_priority = sched_priority;
+    attr.sched_flags = flags;
+
+    ret = sched_setattr (0, &attr, 0);
+    if (ret < 0) {
+        return ret;
+    }
+
+    return 0;
+}
+
 void sched_dl_yield (void)
 {
     (void) sched_yield ();
 }
-

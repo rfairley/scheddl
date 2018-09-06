@@ -50,6 +50,50 @@ static PyObject* set_deadline (PyObject* self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject* set_fifo (PyObject* self, PyObject *args)
+{
+    __u32 priority;
+    unsigned int flags = 0;
+    int ret;
+
+    if (!PyArg_ParseTuple (args, "i|I", &priority, &flags)) {
+        return NULL;
+    }
+
+    if ((flags != 0) && (flags != SCHED_DL_RESET_ON_FORK)) {
+        return PyErr_Format (PyExc_AttributeError, "Flags must be 0 or RESET_ON_FORK");
+    }
+
+    ret = set_current_tid_to_fifo (priority, flags);
+    if (ret < 0) {
+        return PyErr_SetFromErrno (PyExc_OSError);
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* set_rr (PyObject* self, PyObject *args)
+{
+    __u32 priority;
+    unsigned int flags = 0;
+    int ret;
+
+    if (!PyArg_ParseTuple (args, "i|I", &priority, &flags)) {
+        return NULL;
+    }
+
+    if ((flags != 0) && (flags != SCHED_DL_RESET_ON_FORK)) {
+        return PyErr_Format (PyExc_AttributeError, "Flags must be 0 or RESET_ON_FORK");
+    }
+
+    ret = set_current_tid_to_rr (priority, flags);
+    if (ret < 0) {
+        return PyErr_SetFromErrno (PyExc_OSError);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* deadline_yield (PyObject* self)
 {
     sched_dl_yield ();
@@ -63,10 +107,19 @@ static char set_deadline_docs[] = "set_deadline(runtime_ns, deadline_ns, period_
         "    and all of the parameter values must be at least 1024 (i.e., just over one microsecond, which is the\n"
         "    resolution of the implementation), and less than 2^63.";
 
+static char set_fifo_docs[] = "set_fifo docs: see `man sched`";
+
+static char set_rr_docs[] = "set_rr docs: see `man sched`";
+
 static char deadline_yield_docs[] = "sched_yield(): yield process\n";
 
-static PyMethodDef sched_dl_funcs[] = { { "set_deadline", (PyCFunction) set_deadline, METH_VARARGS, set_deadline_docs }, { "sched_yield",
-        (PyCFunction) deadline_yield, METH_NOARGS, deadline_yield_docs }, { NULL } };
+static PyMethodDef sched_dl_funcs[] = {
+    { "set_deadline", (PyCFunction) set_deadline, METH_VARARGS, set_deadline_docs },
+    { "set_fifo", (PyCFunction) set_fifo, METH_VARARGS, set_fifo_docs },
+    { "set_rr", (PyCFunction) set_rr, METH_VARARGS, set_rr_docs },
+    { "sched_yield", (PyCFunction) deadline_yield, METH_NOARGS, deadline_yield_docs },
+    { NULL }
+  };
 
 #if PY_MAJOR_VERSION >= 3
 

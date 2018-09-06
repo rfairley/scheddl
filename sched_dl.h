@@ -26,6 +26,8 @@
 #include <linux/types.h>
 
 int set_current_tid_to_deadline (__u64 runtime, __u64 deadline, __u64 period, unsigned int flags);
+int set_current_tid_to_fifo (__u32 sched_priority, unsigned int flags);
+int set_current_tid_to_rr (__u32 sched_priority, unsigned int flags);
 void sched_dl_yield (void);
 
 #endif /* SCHED_DL_H_ */
